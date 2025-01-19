@@ -13,8 +13,38 @@
     #map {
       height: 100vh; /* Wysokość mapy - na cały ekran */
     }
+
+    /* Dodajemy nowe style dla panelu bocznego */
+    #sidebar {
+            width: 30%;
+            height: 100vh;
+            float: left;
+            padding: 10px;
+            background-color: #f4f4f4;
+            overflow-y: auto;
+        }
+        #sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        #sidebar li {
+            padding: 10px;
+            background-color: #ddd;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+        #sidebar li:hover {
+            background-color: #ccc;
+        }
   </style>
 </head>
+<!-- Panel boczny (dodaj to poniżej div#map) -->
+<div id="sidebar">
+  <h3>Skrzynki</h3>
+  <ul id="skrznki-lista">
+      <!-- Skrzynki będą dodawane dynamicznie tutaj -->
+  </ul>
+</div>
 <body>
   <div id="map"></div>
   <!-- Leaflet JS -->
