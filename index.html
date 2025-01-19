@@ -38,15 +38,17 @@
         }
   </style>
 </head>
-<!-- Panel boczny (dodaj to poniżej div#map) -->
-<div id="sidebar">
-  <h3>Skrzynki</h3>
-  <ul id="skrznki-lista">
-      <!-- Skrzynki będą dodawane dynamicznie tutaj -->
-  </ul>
-</div>
 <body>
   <div id="map"></div>
+
+  <!-- Panel boczny (dodajemy poniżej div#map) -->
+  <div id="sidebar">
+    <h3>Skrzynki</h3>
+    <ul id="skrznki-lista">
+        <!-- Skrzynki będą dodawane dynamicznie tutaj -->
+    </ul>
+  </div>
+
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
@@ -104,13 +106,27 @@
       }
     ];
 
-    // Dodanie markerów na mapę
-    skrzynki.forEach(skrzynka => {
-      L.marker(skrzynka.coords)
+    // Dodanie markerów na mapę oraz dodanie listy skrzynek do panelu bocznego
+    const skrzynkiList = document.getElementById('skrznki-lista');
+
+    skrzynki.forEach((skrzyneczka) => {
+      // Dodanie markera na mapie
+      const marker = L.marker(skrzyneczka.coords)
         .addTo(map)
-        .bindPopup(`<b>${skrzynka.nazwa}</b><br>${skrzynka.opis}`);
+        .bindPopup(`<b>${skrzyneczka.nazwa}</b><br>${skrzyneczka.opis}`);
+
+      // Dodanie skrzynki do listy w panelu bocznym
+      const listItem = document.createElement('li');
+      listItem.textContent = skrzyneczka.nazwa;
+      listItem.addEventListener('click', () => {
+        // Przesunięcie mapy do danej skrzynki
+        map.setView(skrzyneczka.coords, 15);
+        marker.openPopup();
+      });
+      skrzynkiList.appendChild(listItem);
     });
   </script>
+
   <script>
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
@@ -119,6 +135,6 @@
             console.log('Rejestracja Service Workera nie powiodła się: ', error);
         });
     }
-</script>
+  </script>
 </body>
 </html>
