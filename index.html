@@ -18,8 +18,8 @@
 
     #map {
       flex: 1;
-      height: 100%;
-      transition: width 0.3s ease;
+      height: 100vh;
+      transition: all 0.3s ease;
     }
 
     #sidebar {
@@ -29,14 +29,12 @@
       background-color: #f4f4f4;
       overflow-y: auto;
       transition: transform 0.3s ease;
+      position: relative;
     }
 
     #sidebar.hidden {
       transform: translateX(-100%);
-    }
-
-    #map.fullscreen {
-      width: 100%;
+      position: absolute;
     }
 
     #toggle-sidebar {
@@ -141,11 +139,9 @@
 
     const sidebar = document.getElementById('sidebar');
     const toggleSidebarBtn = document.getElementById('toggle-sidebar');
-    const mapElement = document.getElementById('map');
 
     toggleSidebarBtn.addEventListener('click', () => {
       sidebar.classList.toggle('hidden');
-      mapElement.classList.toggle('fullscreen');
       toggleSidebarBtn.textContent = sidebar.classList.contains('hidden') ? 'Pokaż panel' : 'Ukryj panel';
       setTimeout(() => {
         map.invalidateSize(); // Odśwież mapę, aby dostosować jej wymiary
@@ -154,4 +150,3 @@
   </script>
 </body>
 </html>
-
