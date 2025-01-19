@@ -8,44 +8,46 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="manifest" href="manifest.json">
 
-
   <style>
     #map {
       height: 100vh; /* Wysokość mapy - na cały ekran */
+      width: 70%; /* Mapa zajmuje 70% szerokości */
+      float: left; /* Mapa na lewej stronie */
     }
 
-    /* Dodajemy nowe style dla panelu bocznego */
+    /* Styl dla panelu bocznego */
     #sidebar {
-            width: 30%;
-            height: 100vh;
-            float: left;
-            padding: 10px;
-            background-color: #f4f4f4;
-            overflow-y: auto;
-        }
-        #sidebar ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        #sidebar li {
-            padding: 10px;
-            background-color: #ddd;
-            margin-bottom: 5px;
-            cursor: pointer;
-        }
-        #sidebar li:hover {
-            background-color: #ccc;
-        }
+      width: 30%; /* Panel boczny zajmuje 30% szerokości */
+      height: 100vh;
+      float: left; /* Panel boczny obok mapy */
+      padding: 10px;
+      background-color: #f4f4f4;
+      overflow-y: auto;
+    }
+    #sidebar ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    #sidebar li {
+      padding: 10px;
+      background-color: #ddd;
+      margin-bottom: 5px;
+      cursor: pointer;
+    }
+    #sidebar li:hover {
+      background-color: #ccc;
+    }
   </style>
 </head>
 <body>
+
   <div id="map"></div>
 
-  <!-- Panel boczny (dodajemy poniżej div#map) -->
+  <!-- Panel boczny -->
   <div id="sidebar">
     <h3>Skrzynki</h3>
     <ul id="skrznki-lista">
-        <!-- Skrzynki będą dodawane dynamicznie tutaj -->
+      <!-- Skrzynki będą dodawane dynamicznie tutaj -->
     </ul>
   </div>
 
