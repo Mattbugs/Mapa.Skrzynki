@@ -67,7 +67,7 @@
     const mapboxToken = 'sk.eyJ1IjoibWF0dC10aG9ybiIsImEiOiJjbTYzanR5djUxNXpmMmpzZWxsOHNnMWNsIn0.1UP3C7P9jtNbE9APzu5U6Q'; // Wklej tutaj swój token Mapbox!
 
     // Inicjalizacja mapy
-    const map = L.map('map').setView([53.0138, 18.5984], 13); // Toruń jako przykład
+    const map = L.map('map').setView([59.798993, 18.774715], 13); // Toruń jako przykład
 
     // Warstwa satelitarna Mapbox
     L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${mapboxToken}`, {
@@ -106,14 +106,14 @@
     // Przykładowe dane (skrzynki)
     const skrzynki = [
       {
-        nazwa: "Skrzynka 1",
+        nazwa: "Box 1",
         opis: "Zawór główny nawadniania strefy A.",
-        coords: [53.0145, 18.5989]
+        coords: [59.798525, 18.778091]
       },
       {
-        nazwa: "Skrzynka 2",
+        nazwa: "Box 2",
         opis: "Zawór rezerwowy, strefa B.",
-        coords: [53.0125, 18.5950]
+        coords: [59.800526, 18.786322]
       }
     ];
 
