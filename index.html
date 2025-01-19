@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa Skrzynek - Lokalizacja</title>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="manifest" href="manifest.json">
+
+
+  <style>
+    #map {
+      height: 100vh; /* Wysokość mapy - na cały ekran */
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // Twój token Mapbox
+    const mapboxToken = 'sk.eyJ1IjoibWF0dC10aG9ybiIsImEiOiJjbTYzanR5djUxNXpmMmpzZWxsOHNnMWNsIn0.1UP3C7P9jtNbE9APzu5U6Q'; // Wklej tutaj swój token Mapbox!
+
+    // Inicjalizacja mapy
+    const map = L.map('map').setView([53.0138, 18.5984], 13); // Toruń jako przykład
+
+    // Warstwa satelitarna Mapbox
+    L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${mapboxToken}`, {
+      attribution: 'Map data © <a href="https://www.mapbox.com/">Mapbox</a>',
+      tileSize: 512,
+      zoomOffset: -1
+    }).addTo(map);
+
+    // Dodanie lokalizacji użytkownika
+    map.locate({ setView: true, maxZoom: 16 });
+
+    // Ikona dla lokalizacji użytkownika
+    const userIcon = L.icon({
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png', // Przykład ikony (zmień URL, jeśli chcesz własną ikonę)
+      iconSize: [25, 25], // Rozmiar ikony
+      iconAnchor: [12, 12]
+    });
+
+    // Obsługa zdarzenia wykrycia lokalizacji
+    map.on('locationfound', (e) => {
+      const radius = e.accuracy / 2; // Promień dokładności lokalizacji
+      // Marker dla użytkownika
+      L.marker(e.latlng, { icon: userIcon })
+        .addTo(map)
+        .bindPopup(`Twoja lokalizacja (dokładność: ${radius} metrów)`)
+        .openPopup();
+      // Okrąg dla dokładności
+      L.circle(e.latlng, radius).addTo(map);
+    });
+
+    // Obsługa błędu lokalizacji
+    map.on('locationerror', (e) => {
+      alert("Nie można wykryć lokalizacji: " + e.message);
+    });
+
+    // Przykładowe dane (skrzynki)
+    const skrzynki = [
+      {
+        nazwa: "Skrzynka 1",
+        opis: "Zawór główny nawadniania strefy A.",
+        coords: [53.0145, 18.5989]
+      },
+      {
+        nazwa: "Skrzynka 2",
+        opis: "Zawór rezerwowy, strefa B.",
+        coords: [53.0125, 18.5950]
+      }
+    ];
+
+    // Dodanie markerów na mapę
+    skrzynki.forEach(skrzynka => {
+      L.marker(skrzynka.coords)
+        .addTo(map)
+        .bindPopup(`<b>${skrzynka.nazwa}</b><br>${skrzynka.opis}`);
+    });
+  </script>
+</body>
+</html>
