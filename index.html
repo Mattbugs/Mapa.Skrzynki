@@ -14,6 +14,7 @@
       display: flex;
       margin: 0;
       height: 100vh;
+      overflow: hidden;
     }
 
     #map {
@@ -28,6 +29,24 @@
       padding: 10px;
       background-color: #f4f4f4;
       overflow-y: auto;
+      transition: transform 0.3s ease; /* Płynne ukrywanie i pokazywanie */
+    }
+
+    #sidebar.hidden {
+      transform: translateX(-100%);
+    }
+
+    #toggle-sidebar {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-radius: 5px;
     }
 
     #sidebar ul {
@@ -48,6 +67,9 @@
   </style>
 </head>
 <body>
+
+  <!-- Przycisk ukrywania/pokazywania -->
+  <button id="toggle-sidebar">Ukryj panel</button>
 
   <!-- Panel boczny -->
   <div id="sidebar">
@@ -81,72 +103,51 @@
 
     // Ikona dla lokalizacji użytkownika
     const userIcon = L.icon({
-      iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png', // Przykład ikony (zmień URL, jeśli chcesz własną ikonę)
-      iconSize: [25, 25], // Rozmiar ikony
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+      iconSize: [25, 25],
       iconAnchor: [12, 12]
     });
 
-    // Obsługa zdarzenia wykrycia lokalizacji
     map.on('locationfound', (e) => {
-      const radius = e.accuracy / 2; // Promień dokładności lokalizacji
-      // Marker dla użytkownika
+      const radius = e.accuracy / 2;
       L.marker(e.latlng, { icon: userIcon })
         .addTo(map)
         .bindPopup(`Twoja lokalizacja (dokładność: ${radius} metrów)`)
         .openPopup();
-      // Okrąg dla dokładności
       L.circle(e.latlng, radius).addTo(map);
     });
 
-    // Obsługa błędu lokalizacji
     map.on('locationerror', (e) => {
       alert("Nie można wykryć lokalizacji: " + e.message);
     });
 
-    // Przykładowe dane (skrzynki)
     const skrzynki = [
-      {
-        nazwa: "Box 1",
-        opis: "Zawór główny nawadniania strefy A.",
-        coords: [59.798525, 18.778091]
-      },
-      {
-        nazwa: "Box 2",
-        opis: "Zawór rezerwowy, strefa B.",
-        coords: [59.800526, 18.786322]
-      }
+      { nazwa: "Box 1", opis: "Zawór główny nawadniania strefy A.", coords: [59.798525, 18.778091] },
+      { nazwa: "Box 2", opis: "Zawór rezerwowy, strefa B.", coords: [59.800526, 18.786322] }
     ];
 
-    // Dodanie markerów na mapę oraz dodanie listy skrzynek do panelu bocznego
     const skrzynkiList = document.getElementById('skrznki-lista');
-
     skrzynki.forEach((skrzyneczka) => {
-      // Dodanie markera na mapie
       const marker = L.marker(skrzyneczka.coords)
         .addTo(map)
         .bindPopup(`<b>${skrzyneczka.nazwa}</b><br>${skrzyneczka.opis}`);
 
-      // Dodanie skrzynki do listy w panelu bocznym
       const listItem = document.createElement('li');
       listItem.textContent = skrzyneczka.nazwa;
       listItem.addEventListener('click', () => {
-        // Przesunięcie mapy do danej skrzynki
         map.setView(skrzyneczka.coords, 15);
         marker.openPopup();
       });
       skrzynkiList.appendChild(listItem);
     });
-  </script>
 
-  <script>
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
-            console.log('Service Worker zarejestrowany: ', registration);
-        }).catch(function(error) {
-            console.log('Rejestracja Service Workera nie powiodła się: ', error);
-        });
-    }
-  </script>
+    const sidebar = document.getElementById('sidebar');
+    const toggleSidebarBtn = document.getElementById('toggle-sidebar');
 
+    toggleSidebarBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('hidden');
+      toggleSidebarBtn.textContent = sidebar.classList.contains('hidden') ? 'Pokaż panel' : 'Ukryj panel';
+    });
+  </script>
 </body>
 </html>
