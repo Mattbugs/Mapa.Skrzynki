@@ -9,45 +9,27 @@
   <link rel="manifest" href="manifest.json">
 
   <style>
+    /* Styl dla kontenera mapy i panelu bocznego */
     body {
+      display: flex;
       margin: 0;
       height: 100vh;
-      overflow: hidden;
-      display: flex;
     }
 
     #map {
-      flex: 1;
-      height: 100vh;
-      transition: all 0.3s ease;
+      flex: 1; /* Mapa zajmuje resztę dostępnej przestrzeni */
+      height: 100%; /* Wysokość mapy na cały ekran */
     }
 
+    /* Styl dla panelu bocznego */
     #sidebar {
-      width: 15%;
+      width: 15%; /* Panel boczny zajmuje 15% szerokości */
       height: 100vh;
       padding: 10px;
-      background-color: #f4f4f4;
+      background-color: #4CAF50; /* Zielony kolor tła */
+      color: #fff; /* Biały kolor tekstu */
       overflow-y: auto;
-      transition: transform 0.3s ease;
-      position: relative;
-    }
-
-    #sidebar.hidden {
-      transform: translateX(-100%);
-      position: absolute;
-    }
-
-    #toggle-sidebar {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 1000;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      cursor: pointer;
-      border-radius: 5px;
+      transition: width 0.3s ease; /* Animacja przy chowaniu panelu */
     }
 
     #sidebar ul {
@@ -57,20 +39,40 @@
 
     #sidebar li {
       padding: 10px;
-      background-color: #ddd;
+      background-color: #66BB6A; /* Jaśniejszy zielony dla listy */
       margin-bottom: 5px;
       cursor: pointer;
+      color: #fff; /* Biały kolor tekstu */
+      border-radius: 5px;
     }
 
     #sidebar li:hover {
-      background-color: #ccc;
+      background-color: #43A047; /* Ciemniejszy zielony na hover */
+    }
+
+    /* Przycisk do chowania panelu */
+    #toggle-button {
+      position: absolute;
+      top: 10px;
+      right: 15%;
+      padding: 5px 10px;
+      background-color: #2E7D32; /* Ciemniejszy zielony dla przycisku */
+      color: #fff; /* Biały kolor tekstu */
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      z-index: 1000;
+    }
+
+    #toggle-button:hover {
+      background-color: #1B5E20; /* Jeszcze ciemniejszy na hover */
     }
   </style>
 </head>
 <body>
 
-  <!-- Przycisk ukrywania/pokazywania -->
-  <button id="toggle-sidebar">Ukryj panel</button>
+  <!-- Przycisk do chowania panelu -->
+  <button id="toggle-button">Schowaj panel</button>
 
   <!-- Panel boczny -->
   <div id="sidebar">
@@ -86,24 +88,30 @@
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const mapboxToken = 'sk.eyJ1IjoibWF0dC10aG9ybiIsImEiOiJjbTYzanR5djUxNXpmMmpzZWxsOHNnMWNsIn0.1UP3C7P9jtNbE9APzu5U6Q';
+    // Twój token Mapbox
+    const mapboxToken = 'sk.eyJ1IjoibWF0dC10aG9ybiIsImEiOiJjbTYzanR5djUxNXpmMmpzZWxsOHNnMWNsIn0.1UP3C7P9jtNbE9APzu5U6Q'; // Wklej tutaj swój token Mapbox!
 
+    // Inicjalizacja mapy
     const map = L.map('map').setView([59.798993, 18.774715], 13);
 
+    // Warstwa satelitarna Mapbox
     L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${mapboxToken}`, {
       attribution: 'Map data © <a href="https://www.mapbox.com/">Mapbox</a>',
       tileSize: 512,
       zoomOffset: -1
     }).addTo(map);
 
+    // Dodanie lokalizacji użytkownika
     map.locate({ setView: true, maxZoom: 16 });
 
+    // Ikona dla lokalizacji użytkownika
     const userIcon = L.icon({
       iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
       iconSize: [25, 25],
       iconAnchor: [12, 12]
     });
 
+    // Obsługa zdarzenia wykrycia lokalizacji
     map.on('locationfound', (e) => {
       const radius = e.accuracy / 2;
       L.marker(e.latlng, { icon: userIcon })
@@ -113,16 +121,28 @@
       L.circle(e.latlng, radius).addTo(map);
     });
 
+    // Obsługa błędu lokalizacji
     map.on('locationerror', (e) => {
       alert("Nie można wykryć lokalizacji: " + e.message);
     });
 
+    // Przykładowe dane (skrzynki)
     const skrzynki = [
-      { nazwa: "Box 1", opis: "Zawór główny nawadniania strefy A.", coords: [59.798525, 18.778091] },
-      { nazwa: "Box 2", opis: "Zawór rezerwowy, strefa B.", coords: [59.800526, 18.786322] }
+      {
+        nazwa: "Box 1",
+        opis: "Zawór główny nawadniania strefy A.",
+        coords: [59.798525, 18.778091]
+      },
+      {
+        nazwa: "Box 2",
+        opis: "Zawór rezerwowy, strefa B.",
+        coords: [59.800526, 18.786322]
+      }
     ];
 
+    // Dodanie markerów na mapę oraz dodanie listy skrzynek do panelu bocznego
     const skrzynkiList = document.getElementById('skrznki-lista');
+
     skrzynki.forEach((skrzyneczka) => {
       const marker = L.marker(skrzyneczka.coords)
         .addTo(map)
@@ -137,16 +157,24 @@
       skrzynkiList.appendChild(listItem);
     });
 
+    // Obsługa chowania i pokazywania panelu bocznego
     const sidebar = document.getElementById('sidebar');
-    const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+    const toggleButton = document.getElementById('toggle-button');
+    let isSidebarVisible = true;
 
-    toggleSidebarBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('hidden');
-      toggleSidebarBtn.textContent = sidebar.classList.contains('hidden') ? 'Pokaż panel' : 'Ukryj panel';
-      setTimeout(() => {
-        map.invalidateSize(); // Odśwież mapę, aby dostosować jej wymiary
-      }, 300);
+    toggleButton.addEventListener('click', () => {
+      if (isSidebarVisible) {
+        sidebar.style.width = '0';
+        toggleButton.style.right = '0';
+        toggleButton.textContent = 'Pokaż panel';
+      } else {
+        sidebar.style.width = '15%';
+        toggleButton.style.right = '15%';
+        toggleButton.textContent = 'Schowaj panel';
+      }
+      isSidebarVisible = !isSidebarVisible;
     });
   </script>
+
 </body>
 </html>
