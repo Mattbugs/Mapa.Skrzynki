@@ -14,16 +14,17 @@
       display: flex;
       margin: 0;
       height: 100vh;
+      overflow: hidden;
     }
 
     #map {
-      flex: 1; /* Mapa zajmuje resztę dostępnej przestrzeni */
+      flex: 1;
       height: 100%; /* Wysokość mapy na cały ekran */
     }
 
     /* Styl dla panelu bocznego */
     #sidebar {
-      width: 15%; /* Panel boczny zajmuje 15% szerokości */
+      width: 15%;
       height: 100vh;
       padding: 10px;
       background-color: #4CAF50; /* Zielony kolor tła */
@@ -32,9 +33,16 @@
       transition: width 0.3s ease; /* Animacja przy chowaniu panelu */
     }
 
+    #sidebar.hidden {
+      width: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
     #sidebar ul {
       list-style-type: none;
       padding: 0;
+      margin: 0;
     }
 
     #sidebar li {
@@ -54,7 +62,7 @@
     #toggle-button {
       position: absolute;
       top: 10px;
-      right: 15%;
+      right: -35px; /* Przesunięcie przycisku na prawą stronę */
       padding: 5px 10px;
       background-color: #2E7D32; /* Ciemniejszy zielony dla przycisku */
       color: #fff; /* Biały kolor tekstu */
@@ -76,7 +84,7 @@
 
   <!-- Panel boczny -->
   <div id="sidebar">
-    <h3>Skrzynki</h3>
+    <h3>Boxes</h3> <!-- Zmieniony napis na "Boxes" -->
     <ul id="skrznki-lista">
       <!-- Skrzynki będą dodawane dynamicznie tutaj -->
     </ul>
@@ -89,7 +97,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     // Twój token Mapbox
-    const mapboxToken = 'sk.eyJ1IjoibWF0dC10aG9ybiIsImEiOiJjbTYzanR5djUxNXpmMmpzZWxsOHNnMWNsIn0.1UP3C7P9jtNbE9APzu5U6Q'; // Wklej tutaj swój token Mapbox!
+    const mapboxToken = 'sk.eyJ1IjoibWF0dC10aG9ybiIsImEiOiJjbTYzanR5djUxNXpmMmpzZWxsOHNnMWNsIn0.1UP3C7P9jtNbE9APzu5U6Q';
 
     // Inicjalizacja mapy
     const map = L.map('map').setView([59.798993, 18.774715], 13);
@@ -111,7 +119,6 @@
       iconAnchor: [12, 12]
     });
 
-    // Obsługa zdarzenia wykrycia lokalizacji
     map.on('locationfound', (e) => {
       const radius = e.accuracy / 2;
       L.marker(e.latlng, { icon: userIcon })
@@ -121,7 +128,6 @@
       L.circle(e.latlng, radius).addTo(map);
     });
 
-    // Obsługa błędu lokalizacji
     map.on('locationerror', (e) => {
       alert("Nie można wykryć lokalizacji: " + e.message);
     });
@@ -140,7 +146,6 @@
       }
     ];
 
-    // Dodanie markerów na mapę oraz dodanie listy skrzynek do panelu bocznego
     const skrzynkiList = document.getElementById('skrznki-lista');
 
     skrzynki.forEach((skrzyneczka) => {
@@ -160,19 +165,15 @@
     // Obsługa chowania i pokazywania panelu bocznego
     const sidebar = document.getElementById('sidebar');
     const toggleButton = document.getElementById('toggle-button');
-    let isSidebarVisible = true;
 
     toggleButton.addEventListener('click', () => {
-      if (isSidebarVisible) {
-        sidebar.style.width = '0';
-        toggleButton.style.right = '0';
-        toggleButton.textContent = 'Pokaż panel';
-      } else {
-        sidebar.style.width = '15%';
-        toggleButton.style.right = '15%';
+      if (sidebar.classList.contains('hidden')) {
+        sidebar.classList.remove('hidden');
         toggleButton.textContent = 'Schowaj panel';
+      } else {
+        sidebar.classList.add('hidden');
+        toggleButton.textContent = 'Pokaż panel';
       }
-      isSidebarVisible = !isSidebarVisible;
     });
   </script>
 
