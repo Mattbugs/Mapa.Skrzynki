@@ -62,7 +62,7 @@
     #toggle-button {
       position: absolute;
       top: 10px;
-      right: -35px; /* Przesunięcie przycisku na prawą stronę */
+      left: -35px; /* Przycisk na lewej stronie */
       padding: 5px 10px;
       background-color: #2E7D32; /* Ciemniejszy zielony dla przycisku */
       color: #fff; /* Biały kolor tekstu */
@@ -80,7 +80,7 @@
 <body>
 
   <!-- Przycisk do chowania panelu -->
-  <button id="toggle-button">Schowaj panel</button>
+  <button id="toggle-button">Hide</button>
 
   <!-- Panel boczny -->
   <div id="sidebar">
@@ -169,10 +169,10 @@
     toggleButton.addEventListener('click', () => {
       if (sidebar.classList.contains('hidden')) {
         sidebar.classList.remove('hidden');
-        toggleButton.textContent = 'Schowaj panel';
+        toggleButton.textContent = 'Hide';
       } else {
         sidebar.classList.add('hidden');
-        toggleButton.textContent = 'Pokaż panel';
+        toggleButton.textContent = 'Show';
       }
     });
   </script>
