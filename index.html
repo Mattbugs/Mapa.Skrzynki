@@ -9,31 +9,37 @@
   <link rel="manifest" href="manifest.json">
 
   <style>
+    body {
+      margin: 0;
+      display: flex;
+    }
+
     #map {
-      height: 100vh; /* Wysokość mapy - na cały ekran */
-      width: 85%; /* Mapa zajmuje 70% szerokości */
-      float: right; /* Mapa na lewej stronie */
+      height: 100vh; /* Mapa zajmuje 100% wysokości ekranu */
+      width: 85%; /* Mapa zajmuje 85% szerokości */
     }
 
     /* Styl dla panelu bocznego */
     #sidebar {
-      width: 15%; /* Panel boczny zajmuje 30% szerokości */
+      width: 15%; /* Panel boczny zajmuje 15% szerokości */
       height: 100vh;
-      float: right; /* Panel boczny obok mapy */
       padding: 10px;
       background-color: #f4f4f4;
       overflow-y: auto;
     }
+
     #sidebar ul {
       list-style-type: none;
       padding: 0;
     }
+
     #sidebar li {
       padding: 10px;
       background-color: #ddd;
       margin-bottom: 5px;
       cursor: pointer;
     }
+
     #sidebar li:hover {
       background-color: #ccc;
     }
@@ -100,43 +106,4 @@
         nazwa: "Skrzynka 1",
         opis: "Zawór główny nawadniania strefy A.",
         coords: [53.0145, 18.5989]
-      },
-      {
-        nazwa: "Skrzynka 2",
-        opis: "Zawór rezerwowy, strefa B.",
-        coords: [53.0125, 18.5950]
-      }
-    ];
-
-    // Dodanie markerów na mapę oraz dodanie listy skrzynek do panelu bocznego
-    const skrzynkiList = document.getElementById('skrznki-lista');
-
-    skrzynki.forEach((skrzyneczka) => {
-      // Dodanie markera na mapie
-      const marker = L.marker(skrzyneczka.coords)
-        .addTo(map)
-        .bindPopup(`<b>${skrzyneczka.nazwa}</b><br>${skrzyneczka.opis}`);
-
-      // Dodanie skrzynki do listy w panelu bocznym
-      const listItem = document.createElement('li');
-      listItem.textContent = skrzyneczka.nazwa;
-      listItem.addEventListener('click', () => {
-        // Przesunięcie mapy do danej skrzynki
-        map.setView(skrzyneczka.coords, 15);
-        marker.openPopup();
-      });
-      skrzynkiList.appendChild(listItem);
-    });
-  </script>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
-            console.log('Service Worker zarejestrowany: ', registration);
-        }).catch(function(error) {
-            console.log('Rejestracja Service Workera nie powiodła się: ', error);
-        });
-    }
-  </script>
-</body>
-</html>
+   
