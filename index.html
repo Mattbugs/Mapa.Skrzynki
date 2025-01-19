@@ -9,31 +9,34 @@
   <link rel="manifest" href="manifest.json">
 
   <style>
-    /* Styl dla kontenera mapy i panelu bocznego */
     body {
-      display: flex;
       margin: 0;
       height: 100vh;
       overflow: hidden;
+      display: flex;
     }
 
     #map {
-      flex: 1; /* Mapa zajmuje resztę dostępnej przestrzeni */
-      height: 100%; /* Wysokość mapy na cały ekran */
+      flex: 1;
+      height: 100%;
+      transition: width 0.3s ease;
     }
 
-    /* Styl dla panelu bocznego */
     #sidebar {
-      width: 15%; /* Panel boczny zajmuje 15% szerokości */
+      width: 15%;
       height: 100vh;
       padding: 10px;
       background-color: #f4f4f4;
       overflow-y: auto;
-      transition: transform 0.3s ease; /* Płynne ukrywanie i pokazywanie */
+      transition: transform 0.3s ease;
     }
 
     #sidebar.hidden {
       transform: translateX(-100%);
+    }
+
+    #map.fullscreen {
+      width: 100%;
     }
 
     #toggle-sidebar {
@@ -85,23 +88,18 @@
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // Twój token Mapbox
-    const mapboxToken = 'sk.eyJ1IjoibWF0dC10aG9ybiIsImEiOiJjbTYzanR5djUxNXpmMmpzZWxsOHNnMWNsIn0.1UP3C7P9jtNbE9APzu5U6Q'; // Wklej tutaj swój token Mapbox!
+    const mapboxToken = 'sk.eyJ1IjoibWF0dC10aG9ybiIsImEiOiJjbTYzanR5djUxNXpmMmpzZWxsOHNnMWNsIn0.1UP3C7P9jtNbE9APzu5U6Q';
 
-    // Inicjalizacja mapy
-    const map = L.map('map').setView([59.798993, 18.774715], 13); // Toruń jako przykład
+    const map = L.map('map').setView([59.798993, 18.774715], 13);
 
-    // Warstwa satelitarna Mapbox
     L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${mapboxToken}`, {
       attribution: 'Map data © <a href="https://www.mapbox.com/">Mapbox</a>',
       tileSize: 512,
       zoomOffset: -1
     }).addTo(map);
 
-    // Dodanie lokalizacji użytkownika
     map.locate({ setView: true, maxZoom: 16 });
 
-    // Ikona dla lokalizacji użytkownika
     const userIcon = L.icon({
       iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
       iconSize: [25, 25],
@@ -143,11 +141,17 @@
 
     const sidebar = document.getElementById('sidebar');
     const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+    const mapElement = document.getElementById('map');
 
     toggleSidebarBtn.addEventListener('click', () => {
       sidebar.classList.toggle('hidden');
+      mapElement.classList.toggle('fullscreen');
       toggleSidebarBtn.textContent = sidebar.classList.contains('hidden') ? 'Pokaż panel' : 'Ukryj panel';
+      setTimeout(() => {
+        map.invalidateSize(); // Odśwież mapę, aby dostosować jej wymiary
+      }, 300);
     });
   </script>
 </body>
 </html>
+
