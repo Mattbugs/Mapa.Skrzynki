@@ -1,181 +1,401 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mapa Skrzynek - Lokalizacja</title>
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="manifest" href="manifest.json">
-
-  <style>
-    /* Styl dla kontenera mapy i panelu bocznego */
-    body {
-      display: flex;
-      margin: 0;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    #map {
-      flex: 1;
-      height: 100%; /* Wysokość mapy na cały ekran */
-    }
-
-    /* Styl dla panelu bocznego */
-    #sidebar {
-      width: 15%;
-      height: 100vh;
-      padding: 10px;
-      background-color: #4CAF50; /* Zielony kolor tła */
-      color: #fff; /* Biały kolor tekstu */
-      overflow-y: auto;
-      transition: width 0.3s ease; /* Animacja przy chowaniu panelu */
-    }
-
-    #sidebar.hidden {
-      width: 0;
-      padding: 0;
-      overflow: hidden;
-    }
-
-    #sidebar ul {
-      list-style-type: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    #sidebar li {
-      padding: 10px;
-      background-color: #66BB6A; /* Jaśniejszy zielony dla listy */
-      margin-bottom: 5px;
-      cursor: pointer;
-      color: #fff; /* Biały kolor tekstu */
-      border-radius: 5px;
-    }
-
-    #sidebar li:hover {
-      background-color: #43A047; /* Ciemniejszy zielony na hover */
-    }
-
-    /* Przycisk do chowania panelu */
-    #toggle-button {
-      position: absolute;
-      top: 10px;
-      left: -35px; /* Przycisk na lewej stronie */
-      padding: 5px 10px;
-      background-color: #2E7D32; /* Ciemniejszy zielony dla przycisku */
-      color: #fff; /* Biały kolor tekstu */
-      border: none;
-      border-radius: 3px;
-      cursor: pointer;
-      z-index: 1000;
-    }
-
-    #toggle-button:hover {
-      background-color: #1B5E20; /* Jeszcze ciemniejszy na hover */
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikacja Golfowa - Lokalizator Skrzynek</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Custom scrollbar for webkit browsers (zgodnie z mockupem) */
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: #2d572c; /* Ciemniejszy zielony dla ścieżki */
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: #5cb85c; /* Jaśniejszy zielony dla kciuka */
+            border-radius: 4px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background: #4cae4c;
+        }
+        /* Ensure body takes full height and map fills its container */
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden; /* Zapobiega scrollowaniu całej strony */
+        }
+        #map {
+            height: 100%; /* Mapa wypełnia dostępną przestrzeń w main */
+            width: 100%;
+        }
+        /* Dodatkowe style dla Leaflet popups, jeśli domyślne nie pasują */
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+        }
+        .leaflet-popup-content {
+            font-size: 14px;
+        }
+        .leaflet-popup-content h3 {
+            margin-top: 0;
+            margin-bottom: 5px;
+            font-size: 16px;
+            color: #15803d; /* Green-700 */
+        }
+    </style>
 </head>
-<body>
+<body class="bg-gray-100 flex flex-col h-screen">
 
-  <!-- Przycisk do chowania panelu -->
-  <button id="toggle-button">Hide</button>
+    <header class="bg-green-700 text-white p-4 shadow-md flex justify-between items-center z-40">
+        <div class="flex items-center">
+            <i class="fas fa-bars text-xl mr-3 cursor-pointer md:hidden" id="menuToggleMobile"></i>
+            <h1 class="text-xl font-semibold">Lokalizator Skrzynek Golfowych</h1>
+        </div>
+        </header>
 
-  <!-- Panel boczny -->
-  <div id="sidebar">
-    <h3>Boxes</h3> <!-- Zmieniony napis na "Boxes" -->
-    <ul id="skrznki-lista">
-      <!-- Skrzynki będą dodawane dynamicznie tutaj -->
-    </ul>
-  </div>
+    <div class="flex flex-1 overflow-hidden">
+        <aside id="sidebar" class="bg-green-800 text-green-100 w-full md:w-72 lg:w-80 p-5 space-y-4 sidebar-scroll overflow-y-auto transition-transform duration-300 ease-in-out transform -translate-x-full md:translate-x-0 md:relative absolute inset-y-0 left-0 z-30 shadow-lg">
+            <div class="relative">
+                <input type="text" id="searchInput" placeholder="Szukaj skrzynki..." class="w-full p-2 rounded-md bg-green-700 text-white placeholder-green-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+                <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-300">
+                    <i class="fas fa-search"></i>
+                </span>
+            </div>
 
-  <!-- Mapa -->
-  <div id="map"></div>
+            <nav>
+                <h3 class="text-xs uppercase text-green-400 font-semibold mb-2">Lista Skrzynek</h3>
+                <ul id="skrzynki-lista" class="space-y-1">
+                    </ul>
+            </nav>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script>
-    // Twój token Mapbox
-    const mapboxToken = 'sk.eyJ1IjoibWF0dC10aG9ybiIsImEiOiJjbTYzanR5djUxNXpmMmpzZWxsOHNnMWNsIn0.1UP3C7P9jtNbE9APzu5U6Q';
+            <div class="pt-4 border-t border-green-700">
+                <h3 class="text-xs uppercase text-green-400 font-semibold mb-2">Menu</h3>
+                <ul class="space-y-1">
+                    <li>
+                        <a href="#" class="flex items-center p-2 hover:bg-green-700 rounded-md transition-colors">
+                            <i class="fas fa-plus-circle mr-3 text-green-400"></i> Dodaj nową skrzynkę
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center p-2 hover:bg-green-700 rounded-md transition-colors">
+                            <i class="fas fa-cog mr-3 text-green-400"></i> Ustawienia
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center p-2 hover:bg-green-700 rounded-md transition-colors">
+                            <i class="fas fa-question-circle mr-3 text-green-400"></i> Pomoc
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </aside>
 
-    // Inicjalizacja mapy
-    const map = L.map('map').setView([59.798993, 18.774715], 13);
+        <main class="flex-1 bg-gray-200 relative">
+            <button id="sidebarToggleDesktop" class="hidden md:block absolute top-4 left-4 z-20 bg-green-700 text-white p-2 rounded-md hover:bg-green-600 transition-all duration-300">
+                <i class="fas fa-chevron-left" id="sidebarToggleIcon"></i>
+            </button>
+            <div id="map"></div>
+        </main>
+    </div>
 
-    // Warstwa satelitarna Mapbox
-    L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${mapboxToken}`, {
-      attribution: 'Map data © <a href="https://www.mapbox.com/">Mapbox</a>',
-      tileSize: 512,
-      zoomOffset: -1
-    }).addTo(map);
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Twoja konfiguracja i logika JavaScript zintegrowana z nowym UI
 
-    // Dodanie lokalizacji użytkownika
-    map.locate({ setView: true, maxZoom: 16 });
+        // Konfiguracja (z Twojego kodu)
+        const MAPBOX_TOKEN = 'sk.eyJ1IjoibWF0dC10aG9ybiIsImEiOiJjbTYzanR5djUxNXpmMmpzZWxsOHNnMWNsIn0.1UP3C7P9jtNbE9APzu5U6Q'; // PAMIĘTAJ O ZMIANIE TOKENA!
+        const INITIAL_COORDS = [59.798993, 18.774715]; // Przykładowe koordynaty
+        const INITIAL_ZOOM = 15;
 
-    // Ikona dla lokalizacji użytkownika
-    const userIcon = L.icon({
-      iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
-      iconSize: [25, 25],
-      iconAnchor: [12, 12]
-    });
+        let map;
+        let allSkrzynkiData = []; // Przechowuje wszystkie załadowane skrzynki do filtrowania
 
-    map.on('locationfound', (e) => {
-      const radius = e.accuracy / 2;
-      L.marker(e.latlng, { icon: userIcon })
-        .addTo(map)
-        .bindPopup(`Twoja lokalizacja (dokładność: ${radius} metrów)`)
-        .openPopup();
-      L.circle(e.latlng, radius).addTo(map);
-    });
+        // Elementy DOM
+        const sidebar = document.getElementById('sidebar');
+        const menuToggleMobile = document.getElementById('menuToggleMobile');
+        const sidebarToggleDesktop = document.getElementById('sidebarToggleDesktop');
+        const sidebarToggleIcon = document.getElementById('sidebarToggleIcon');
+        const searchInput = document.getElementById('searchInput');
 
-    map.on('locationerror', (e) => {
-      alert("Nie można wykryć lokalizacji: " + e.message);
-    });
+        /**
+         * Inicjalizacja mapy Leaflet.
+         */
+        function initMap() {
+            map = L.map('map').setView(INITIAL_COORDS, INITIAL_ZOOM);
+            
+            L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/{z}/{x}/{y}?access_token=${MAPBOX_TOKEN}`, {
+                attribution: '© Mapbox, © OpenStreetMap contributors', // Dodano OpenStreetMap dla kompletności
+                tileSize: 512,
+                zoomOffset: -1,
+                maxZoom: 20 // Zwiększono maxZoom dla lepszego przybliżenia
+            }).addTo(map);
 
-    // Przykładowe dane (skrzynki)
-    const skrzynki = [
-      {
-        nazwa: "Box 1",
-        opis: "Zawór główny nawadniania strefy A.",
-        coords: [59.798525, 18.778091]
-      },
-      {
-        nazwa: "Box 2",
-        opis: "Zawór rezerwowy, strefa B.",
-        coords: [59.800526, 18.786322]
-      }
-    ];
+            initUserLocation();
+            loadValveBoxes();
+        }
 
-    const skrzynkiList = document.getElementById('skrznki-lista');
+        /**
+         * Inicjalizacja lokalizacji użytkownika.
+         */
+        function initUserLocation() {
+            const userIcon = L.icon({
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png', // Możesz zmienić na ikonę FontAwesome lub SVG
+                iconSize: [32, 32],
+                iconAnchor: [16, 32], // Poprawiony anchor dla lepszego pozycjonowania
+                popupAnchor: [0, -28]
+            });
 
-    skrzynki.forEach((skrzyneczka) => {
-      const marker = L.marker(skrzyneczka.coords)
-        .addTo(map)
-        .bindPopup(`<b>${skrzyneczka.nazwa}</b><br>${skrzyneczka.opis}`);
+            map.locate({ setView: false, maxZoom: 18, watch: true, enableHighAccuracy: true }); // Ustawiono watch i enableHighAccuracy
+            
+            let userMarker, userCircle;
 
-      const listItem = document.createElement('li');
-      listItem.textContent = skrzyneczka.nazwa;
-      listItem.addEventListener('click', () => {
-        map.setView(skrzyneczka.coords, 15);
-        marker.openPopup();
-      });
-      skrzynkiList.appendChild(listItem);
-    });
+            map.on('locationfound', e => {
+                const radius = e.accuracy / 2;
+                if (userMarker) {
+                    userMarker.setLatLng(e.latlng);
+                    userCircle.setLatLng(e.latlng).setRadius(radius);
+                } else {
+                    userMarker = L.marker(e.latlng, { icon: userIcon }).addTo(map)
+                        .bindPopup(`<b>Twoja lokalizacja</b><br>Dokładność: ${radius.toFixed(1)}m`);
+                    userCircle = L.circle(e.latlng, radius).addTo(map);
+                }
+                // Opcjonalnie: jeśli chcesz centrować mapę na użytkowniku przy pierwszym znalezieniu
+                // if (!map.getBounds().contains(e.latlng)) {
+                //    map.setView(e.latlng, INITIAL_ZOOM);
+                // }
+            });
 
-    // Obsługa chowania i pokazywania panelu bocznego
-    const sidebar = document.getElementById('sidebar');
-    const toggleButton = document.getElementById('toggle-button');
+            map.on('locationerror', e => {
+                console.warn('Błąd lokalizacji: ' + e.message);
+                // Można wyświetlić subtelniejsze powiadomienie zamiast alertu
+                // alert('Nie udało się ustalić Twojej lokalizacji.');
+            });
+        }
 
-    toggleButton.addEventListener('click', () => {
-      if (sidebar.classList.contains('hidden')) {
-        sidebar.classList.remove('hidden');
-        toggleButton.textContent = 'Hide';
-      } else {
-        sidebar.classList.add('hidden');
-        toggleButton.textContent = 'Show';
-      }
-    });
-  </script>
+        /**
+         * Ładowanie danych o skrzynkach z zaworami.
+         * W praktyce dane powinny być ładowane z serwera (fetch do API).
+         */
+        async function loadValveBoxes() {
+            try {
+                // Przykładowe dane (z Twojego kodu, rozszerzone o statusy dla przykładu)
+                const skrzynki = [
+                    { id: "SKR001", nazwa: "Skrzynka #001", opis: "Zawór główny, dołek 1", coords: [59.798525, 18.778091], status: "ok", dolek: "1" },
+                    { id: "SKR002", nazwa: "Skrzynka #002", opis: "Zawór dla greenu, dołek 2", coords: [59.800526, 18.786322], status: "uwaga", dolek: "2" },
+                    { id: "SKR003", nazwa: "Skrzynka #003", opis: "Nawadnianie fairway, dołek 3", coords: [59.797000, 18.779000], status: "ok", dolek: "3" },
+                    { id: "SKR004", nazwa: "Skrzynka #004", opis: "Zawór tee, dołek 4", coords: [59.799500, 18.783000], status: "awaria", dolek: "4" },
+                    { id: "SKR005", nazwa: "Skrzynka #005", opis: "Driving range wschód", coords: [59.796000, 18.775000], status: "ok", dolek: "Driving Range" }
+                ];
+                allSkrzynkiData = skrzynki; // Zapisz oryginalne dane
+                renderMarkersAndList(allSkrzynkiData); // Wyrenderuj początkową listę
+            } catch (error) {
+                console.error('Błąd ładowania danych o skrzynkach:', error);
+                alert('Nie udało się załadować danych o skrzynkach!');
+            }
+        }
+        
+        /**
+         * Renderuje markery na mapie i elementy listy w panelu bocznym.
+         * @param {Array} skrzynki - Tablica obiektów skrzynek do wyświetlenia.
+         */
+        function renderMarkersAndList(skrzynki) {
+            const skrzynkiListElement = document.getElementById('skrzynki-lista');
+            skrzynkiListElement.innerHTML = ''; // Wyczyść listę przed ponownym renderowaniem
+            
+            // Usuń stare markery (jeśli istnieją) - prosty sposób, można zoptymalizować
+            map.eachLayer(function (layer) {
+                if (layer instanceof L.Marker && layer.options.customIconType === 'boxIcon') {
+                    map.removeLayer(layer);
+                }
+            });
 
+            const boxIcon = L.icon({
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/447/447031.png', // Ikona skrzynki
+                iconSize: [36, 36], // Nieco mniejsza
+                iconAnchor: [18, 36],
+                popupAnchor: [0, -32],
+                className: 'box-marker-icon' // Można dodać klasę dla dodatkowych stylów CSS
+            });
+
+            skrzynki.forEach(skrzyneczka => {
+                // Tworzenie znacznika na mapie
+                const marker = L.marker(skrzyneczka.coords, { icon: boxIcon, customIconType: 'boxIcon' }) // Dodajemy custom property
+                    .addTo(map)
+                    .bindPopup(`
+                        <h3>${skrzyneczka.nazwa}</h3>
+                        <p>${skrzyneczka.opis}</p>
+                        <small>Współrzędne: ${skrzyneczka.coords[0].toFixed(6)}, ${skrzyneczka.coords[1].toFixed(6)}</small>
+                    `);
+
+                // Tworzenie elementu listy w panelu bocznym
+                const li = document.createElement('li');
+                li.className = "flex items-center p-2 hover:bg-green-700 rounded-md transition-colors cursor-pointer";
+                
+                let statusClass = "bg-green-600 text-green-100"; // Domyślnie 'ok'
+                let statusIcon = "fa-check-circle";
+                if (skrzyneczka.status === "uwaga") {
+                    statusClass = "bg-yellow-500 text-yellow-900";
+                    statusIcon = "fa-exclamation-triangle";
+                } else if (skrzyneczka.status === "awaria") {
+                    statusClass = "bg-red-500 text-red-100";
+                    statusIcon = "fa-times-circle";
+                }
+
+                li.innerHTML = `
+                    <i class="fas fa-map-marker-alt mr-3 text-green-400"></i>
+                    <div class="flex-grow">
+                        <strong class="text-sm">${skrzyneczka.nazwa}</strong>
+                        <div class="text-xs text-green-300">${skrzyneczka.dolek ? `Dołek: ${skrzyneczka.dolek}` : `ID: ${skrzyneczka.id}`}</div>
+                    </div>
+                    <span class="ml-auto text-xs ${statusClass} px-2 py-0.5 rounded-full flex items-center">
+                        <i class="fas ${statusIcon} mr-1 text-xs"></i>
+                        ${skrzyneczka.status.toUpperCase()}
+                    </span>
+                `;
+                
+                // Event listeners dla elementu listy
+                li.addEventListener('click', () => {
+                    map.flyTo(skrzyneczka.coords, Math.max(map.getZoom(), 17)); // Użyj większego zoomu lub obecnego
+                    marker.openPopup();
+                    // Na mobilkach zamknij sidebar po kliknięciu
+                    if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
+                        sidebar.classList.add('-translate-x-full');
+                        removeOverlay();
+                    }
+                });
+
+                // Opcjonalne: podświetlanie markera na hover listy (może być problematyczne na mobilkach)
+                // li.addEventListener('mouseenter', () => marker.openPopup());
+                // li.addEventListener('mouseleave', () => marker.closePopup());
+
+                skrzynkiListElement.appendChild(li);
+            });
+        }
+        
+        /**
+         * Filtruje listę skrzynek na podstawie tekstu wprowadzonego w polu wyszukiwania.
+         */
+        function filterSkrzynki() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filteredSkrzynki = allSkrzynkiData.filter(skrzynka => {
+                return skrzynka.nazwa.toLowerCase().includes(searchTerm) ||
+                       (skrzynka.id && skrzynka.id.toLowerCase().includes(searchTerm)) ||
+                       (skrzynka.dolek && skrzynka.dolek.toLowerCase().includes(searchTerm)) ||
+                       skrzynka.opis.toLowerCase().includes(searchTerm);
+            });
+            renderMarkersAndList(filteredSkrzynki);
+        }
+
+
+        /**
+         * Obsługa przełączania paska bocznego.
+         */
+        function setupSidebarToggle() {
+            // Przełącznik mobilny
+            if (menuToggleMobile) {
+                menuToggleMobile.addEventListener('click', () => {
+                    sidebar.classList.toggle('-translate-x-full');
+                    if (!sidebar.classList.contains('-translate-x-full')) {
+                        addOverlay();
+                    } else {
+                        removeOverlay();
+                    }
+                });
+            }
+
+            // Przełącznik desktopowy
+            let isSidebarVisibleDesktop = true; // Założenie, że jest widoczny na starcie na desktopie
+            if (sidebarToggleDesktop) {
+                sidebarToggleDesktop.addEventListener('click', () => {
+                    sidebar.classList.toggle('md:w-72'); // Standardowa szerokość
+                    sidebar.classList.toggle('lg:w-80');
+                    sidebar.classList.toggle('md:w-0');   // Szerokość zwinięta
+                    sidebar.classList.toggle('p-5');      // Padding
+                    sidebar.classList.toggle('p-0');      // Brak paddingu po zwinięciu
+                    sidebar.classList.toggle('opacity-0'); // Ukryj zawartość po zwinięciu (dla płynniejszej animacji)
+                    sidebar.classList.toggle('md:opacity-100');
+                    
+                    isSidebarVisibleDesktop = !isSidebarVisibleDesktop;
+                    if (isSidebarVisibleDesktop) {
+                        sidebarToggleIcon.classList.remove('fa-chevron-right');
+                        sidebarToggleIcon.classList.add('fa-chevron-left');
+                        sidebarToggleDesktop.classList.remove('md:left-0'); // Reset pozycji przycisku
+                        sidebarToggleDesktop.classList.add('md:left-4');
+                    } else {
+                        sidebarToggleIcon.classList.remove('fa-chevron-left');
+                        sidebarToggleIcon.classList.add('fa-chevron-right');
+                        // Przesuń przycisk na krawędź, gdy sidebar jest zwinięty
+                        // Ta część może wymagać dopracowania w zależności od dokładnego efektu
+                        setTimeout(() => { // Opóźnienie, aby sidebar zdążył się zwinąć
+                           if(!isSidebarVisibleDesktop) sidebarToggleDesktop.classList.add('md:left-0');
+                        }, 300); // Czas zgodny z transition-duration
+                    }
+                    // Ważne: po zmianie rozmiaru sidebara, mapa może wymagać odświeżenia
+                    setTimeout(() => map.invalidateSize(), 350); 
+                });
+            }
+
+            // Zamknij mobilny sidebar i overlay, jeśli okno zostanie powiększone do widoku desktopowego
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 768) { // Tailwind 'md' breakpoint
+                    if (!sidebar.classList.contains('md:translate-x-0')) { // Jeśli nie jest w stanie desktopowym
+                         sidebar.classList.remove('-translate-x-full'); // Upewnij się, że jest widoczny
+                    }
+                    removeOverlay();
+                }
+                 // Ważne: po zmianie rozmiaru okna, mapa może wymagać odświeżenia
+                map.invalidateSize();
+            });
+        }
+
+        function addOverlay() {
+            if (document.getElementById('sidebarOverlay')) return;
+            const overlay = document.createElement('div');
+            overlay.id = 'sidebarOverlay';
+            overlay.className = 'fixed inset-0 bg-black opacity-50 z-20 md:hidden'; // z-20 aby był pod sidebarem (z-30)
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', () => {
+                sidebar.classList.add('-translate-x-full');
+                removeOverlay();
+            });
+        }
+
+        function removeOverlay() {
+            const overlay = document.getElementById('sidebarOverlay');
+            if (overlay) {
+                overlay.remove();
+            }
+        }
+
+        // Inicjalizacja po załadowaniu DOM
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            setupSidebarToggle();
+            if(searchInput) {
+                searchInput.addEventListener('keyup', filterSkrzynki);
+            }
+        });
+
+        // Rejestracja Service Worker (z Twojego kodu)
+        // Upewnij się, że plik sw.js istnieje i jest poprawnie skonfigurowany
+        /*
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js') // Upewnij się, że ścieżka do sw.js jest poprawna
+                    .then(registration => {
+                        console.log('Service Worker zarejestrowany pomyślnie:', registration);
+                    })
+                    .catch(error => {
+                        console.error('Błąd rejestracji Service Worker:', error);
+                    });
+            });
+        }
+        */
+
+    </script>
 </body>
 </html>
